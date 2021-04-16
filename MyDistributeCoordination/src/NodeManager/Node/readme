@@ -1,0 +1,84 @@
+DistributeLockImplement的多线程错误：
+1.在DistributeLockImplement中的tryLock中有一个致命性的错误，即创建线程返回没有一个阻塞的过程，这个在客户端那边来说是致命的让其误以为获取到了锁，
+其实并没有，真正的获取锁的业务在函数中创建的线程里，但是这个线程并不会将返回值返回给客户端所以出现了错误。
+即在一开始就出现了认知的错误，误以为jmi的远程调用是单线程的，不过有多少个客户端在服务器这边都是点线程处理，但是这个是错误的，其实是多线程的处理。
+所以导致我每一次都是在一个线程里去穿件一个新的线程然后偶在新的线程里处理数据，然后再原本的线程里直接返回了，这个导致tryRelease调用，而此时lockOwner并没有被
+赋值，会出现为空异常。又或许新的线程里获取了锁，但是没有一个对应的tryRelease的调用导致了整个系统的崩溃，即所有的新创建的线程都会加入队列。知道吧队列撑爆。
+我去这个异常太难找了。隐藏的太深了，找了一晚上加一上午才找到。
+
+    System.out.println(Thread.currentThread().getName());
+            Thread thread1 = Thread.currentThread();
+            if (lockOwner == null) {
+                synchronized (distributeLock) {
+                    if (lockOwner == null) {
+                        lockOwner = lockNode;
+                        reLockTimes.incrementAndGet();
+                        System.out.println(lockNode.getThisNodeType()+"加锁，当前的锁的层数为:"+reLockTimes);
+                        return true;
+                    } else if (lockOwner == lockNode) {  //在这里，如程序走到这里，其他线程恰好将lockOwner置空，那么将会报错
+                        reLockTimes.incrementAndGet();
+                        return true;
+                    }
+                }
+            }else if (lockOwner == lockNode){
+                reLockTimes.incrementAndGet();
+                return true;
+            }
+            /**
+             * 枷锁失败则将其加入到等待列表中，等待主节点释放锁
+             *  失败的原因是远程调用的本身就是一个线程，在这里我又将其放入了一个线程中，然后直接返回了，返回的还是false，导致客户端那边直接执行的是tryRelease。
+             */
+            threadPoolManager.threadPoolExecutor.submit(()->{
+                Thread thread = Thread.currentThread();
+                if (!nodeChildren.contains(thread))
+                    nodeChildren.add(thread);
+                try {
+                    System.out.println(lockNode.getThisNodeType() + "加入队列等待");
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                LockSupport.park();
+                try {
+                    //nodeChildren.remove(thread);
+                    System.out.println(lockNode.getThisNodeType() + "被唤醒");
+                    // 被唤醒，然后获取锁，由于此时是在新的线程里，所以其与远程的客户端的链接被断开所以获取到锁并不会被客户端感知，
+                    // 再说了如果走到了这一步说明客户端的tryRelease早已被调用过了，所以这里死锁了，即没有对应的tryRelease方法来释放临街资源。
+                    return tryLock(lockNode);
+                } catch (RemoteException | ExecutionException | InterruptedException | TimeoutException e) {
+                    e.printStackTrace();
+                }
+                return false;
+            });
+            System.out.println(thread1.getName()+"只是创建了一个线程，直接返回了");
+            // 由于业务在新的线程里所以这里直接返回，间接的导致tryRelease被调用。然后可能出现lockOwner为空的情况。
+            return false;
+
+2.还有一个问题就是在tryRelease的时候不能判断完毕后直接将第一个元素删除，应为有可能当前的线程并不是等待列表中的第一个元素，如果不这样做那么
+删除的是其他等待线程极有可能导致多线程问题具体的情况为线程加入队列后无任何其他反映了。然后将等待列表中的第一个元素拿去出来病蒋政线程唤醒。
+    public boolean tryRelease(NodeInterface releaseNode) throws RemoteException {
+    //        System.out.println(Thread.currentThread().getName());
+            if (isLockOwner(releaseNode)) {
+                synchronized (distributeLock) {
+                    reLockTimes.decrementAndGet();
+                    if (reLockTimes.get() == 0) {
+                        //安全的置空
+                        lockOwner = null;
+                        System.out.println(Thread.currentThread().getName() + "-----" + releaseNode.getThisNodeType() + "锁释放");
+                        try {
+                            /**
+                             * 唤醒后面的线程
+                             */
+                             // 这里如果这只称为0，就会出现上述情况。
+                            waiterList.remove(0);
+                            if (waiterList.size() > 0)
+                                LockSupport.unpark(waiterList.remove(0));
+                            System.out.println("当前剩余的等待者数量为：" + waiterList.size());
+                            Thread.sleep(10);
+                        } catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return true;
+        }
