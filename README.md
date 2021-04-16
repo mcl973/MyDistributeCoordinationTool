@@ -149,3 +149,5 @@ Select.SlaveRPCSelectInstance.synchronizedData->修改操作，操作的数据�
 Select.SlaveRPCSelectInstance.synchronizedData->全局唯一id更新了，当前的id为：1
 
 # 不支持锁的备份，如果在使用分布式锁时出现了主节点down掉需要重新在新的主节点上设置锁并拉去所对象
+
+# 经测试当每一个线程之间间隔20毫秒时，分布式锁可以胜任10000个线程的抢夺。
