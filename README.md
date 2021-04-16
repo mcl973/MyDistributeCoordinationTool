@@ -136,7 +136,7 @@ Thread-10
 /////////////开锁Thread-7
 成功--》10
 
-# 增删改时的数据同步
+# 增删改时的数据同步,目前只是简单的同步时局，没有实现分布式算法式的类似于zookeeper的过半机制同意策略
 ## 副本1
 Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：create
 Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：main
