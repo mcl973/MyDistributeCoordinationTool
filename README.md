@@ -3,6 +3,10 @@
 # 具体的radme在下面的连接：
 https://blog.csdn.net/qq_30761967/article/details/115118244
 
+# 参数配置
+在Select.SelectConfig中配置的服务端的所有的节点的信息。
+在RPCManager.RPC.RPCConfig中配置的是基于Select.SelectConfig的配置做了增改，即端口号在其基础上增加了100，病选出了master端口号，此配置主要是为了做主节点和副本之间的通信。
+在NodeManager.Node.nodeConfig.nodeConfig中配置的是基于Select.SelectConfig的配置上本地端口号增加了200，此配置主要是为了向客户端服务的。
 
 # 优化分布式锁以及优化增删改操作所带来的的数据同步
    ## 其中主节点的分布式锁结果展示：
