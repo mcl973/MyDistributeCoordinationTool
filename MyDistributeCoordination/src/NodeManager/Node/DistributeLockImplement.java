@@ -122,10 +122,11 @@ public class DistributeLockImplement extends UnicastRemoteObject implements Dist
                          * 唤醒后面的线程
                          */
                         waiterList.remove(Thread.currentThread());
+                        // 采用的策略为先进先出策略
                         if (waiterList.size() > 0)
                             LockSupport.unpark(waiterList.remove(0));
                         System.out.println("当前剩余的等待者数量为：" + waiterList.size());
-                        Thread.sleep(10);
+                        // Thread.sleep(10);
                     } catch(Exception e){
                         e.printStackTrace();
                     }
