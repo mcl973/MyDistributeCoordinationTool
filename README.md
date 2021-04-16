@@ -136,7 +136,7 @@ Thread-10
 /////////////开锁Thread-7
 成功--》10
 
-# 增删改是的数据同步
+# 增删改时的数据同步
 ## 副本1
 Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：create
 Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：main
