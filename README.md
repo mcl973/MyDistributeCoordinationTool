@@ -147,7 +147,16 @@ Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据�
 Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：main
 Select.SlaveRPCSelectInstance.synchronizedData->修改操作，操作的数据为：main
 Select.SlaveRPCSelectInstance.synchronizedData->全局唯一id更新了，当前的id为：1
-
+# 重新选主节点
+## 副本1  （port为12002）
+当前的主节点port是：11101
+当前的主节点是：localhost:11001
+Thread dead....
+## 副本2 （port为11101）
+当前的主节点port是：11101
+当前的主节点是：localhost:11001
+主节点已建立
+Thread dead....
 # 不支持锁的备份，如果在使用分布式锁时出现了主节点down掉需要重新在新的主节点上设置锁并拉去所对象
 
 # 经测试当每一个线程之间间隔10毫秒时，分布式锁可以胜任10000个线程的抢夺。
