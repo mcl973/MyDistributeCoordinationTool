@@ -8,6 +8,7 @@ https://blog.csdn.net/qq_30761967/article/details/115118244
 在RPCManager.RPC.RPCConfig中配置的是基于Select.SelectConfig的配置做了增改，即端口号在其基础上增加了100，病选出了master端口号，此配置主要是为了做主节点和副本之间的通信。
 在NodeManager.Node.nodeConfig.nodeConfig中配置的是基于Select.SelectConfig的配置上本地端口号增加了200，此配置主要是为了向客户端服务的。
 
+
 # 优化分布式锁以及优化增删改操作所带来的的数据同步
    ## 其中主节点的分布式锁结果展示：
 10200
@@ -134,3 +135,17 @@ Thread-10
 /////////////上锁Thread-7
 /////////////开锁Thread-7
 成功--》10
+
+# 增删改是的数据同步
+## 副本1
+Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：create
+Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：main
+Select.SlaveRPCSelectInstance.synchronizedData->修改操作，操作的数据为：main
+Select.SlaveRPCSelectInstance.synchronizedData->全局唯一id更新了，当前的id为：1
+## 副本2
+Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：create
+Select.SlaveRPCSelectInstance.synchronizedData->添加操作，操作的数据为：main
+Select.SlaveRPCSelectInstance.synchronizedData->修改操作，操作的数据为：main
+Select.SlaveRPCSelectInstance.synchronizedData->全局唯一id更新了，当前的id为：1
+
+# 不支持锁的备份，如果在使用分布式锁时出现了主节点down掉需要重新在新的主节点上设置锁并拉去所对象
