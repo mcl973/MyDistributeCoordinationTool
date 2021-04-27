@@ -1,6 +1,6 @@
 # MyDistributeCoordinationTool
 分布式协调工具  
-# 更新了下分布式锁，去除了arrayList，使用了更加灵活和快速的link来实现等待队列。
+# 更新了下分布式锁，去除了arrayList，使用了更加灵活和快速的自定义link来实现等待队列。
 # 具体的radme在下面的连接：
 https://blog.csdn.net/qq_30761967/article/details/115118244
 
