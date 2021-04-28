@@ -316,7 +316,8 @@ public class DistributeLockImplement extends UnicastRemoteObject implements Dist
                  */
                 synchronized (linkLastLock){
                     waitLink waitLink1 = isInLink.get(thread);
-                    if (waitLink1 == head||(head.next != null && waitLink1 == head.next)) {
+                    // ||(head.next != null && waitLink1 == head.next) 不需要再加上这个了，修改的是不同的数据，所以没有数据的冲突。
+                    if (waitLink1 == head) {
                         synchronized (distributeLock) {
                             deleteNode(waitLink1);
                             isInLink.remove(thread);
