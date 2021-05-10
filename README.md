@@ -1,5 +1,9 @@
-# MyDistributeCoordinationTool
-分布式协调工具  
+# MyDistributeCoordinationTool 分布式协调工具 
+
+# 客户端连接非主协调节点的修改和获取分布式锁的操作选择
+   节点的修改、删除、添加和分布式锁的获取中选择的是在协调节点内部实现暴露而不是将信息告诉给client，再由client来连接远程的主节点来实现节点数据的修改和分布式锁的获取。
+主要的原因就是如果有一个节点有100个client去连接，那么选择第一种方式只需要在非协调主节点和协调主节点之间建立一个新的暴露即可，但是如果选择第二种方式会导致协调主节点多了100个新的连接。如果不是100个client呢，如10000个那么在协调主节点的原本的业务上会多了很多的业务处理。所以会影响协调主节点的性能。
+所以本工具采用了暗度陈仓的方式来是的对于客户端来说是透明的方式。这样既可以实现数据的修改，也可以以高效的方式运行。 
 # 更新了下分布式锁，去除了arrayList，使用了更加灵活和快速的自定义link来实现等待队列。
 分布式锁的讲解在这里：
 https://blog.csdn.net/qq_30761967/article/details/116233041
@@ -8,7 +12,7 @@ https://blog.csdn.net/qq_30761967/article/details/115118244
 
 # 参数配置
 在Select.SelectConfig中配置的服务端的所有的节点的信息。
-在RPCManager.RPC.RPCConfig中配置的是基于Select.SelectConfig的配置做了增改，即端口号在其基础上增加了100，病选出了master端口号，此配置主要是为了做主节点和副本之间的通信。
+在RPCManager.RPC.RPCConfig中配置的是基于Select.SelectConfig的配置做了增改，即端口号在其基础上增加了100，并选出了master端口号，此配置主要是为了做主节点和副本之间的通信。
 在NodeManager.Node.nodeConfig.nodeConfig中配置的是基于Select.SelectConfig的配置上本地端口号增加了200，此配置主要是为了向客户端服务的。
 
 
